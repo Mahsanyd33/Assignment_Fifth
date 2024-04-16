@@ -1,0 +1,79 @@
+---
+title: "mahsa"
+format: html
+editor: visual
+---
+
+## Chargement des bibliothèques
+
+Chargement des bibliothèques nécessaires à l'analyse des séries temporelles
+
+```{r message=FALSE, warning=FALSE}
+library(readr)
+library(forecast)
+library(ggplot2)
+library(tidyverse)
+library(tidyr)
+```
+
+Charger les données
+
+```{r message=FALSE, warning=FALSE}
+hawai <- read_csv("C:/Users/Mayad2/OneDrive - Université Laval/Phd/Winter 2023/Statistic/fifth assignment/hawai.csv")
+```
+
+Convertir les caractères à transformer en date
+
+```{r}
+hawai$time <- as.Date(hawai$time, format = "%Y-%m")
+```
+
+Créer des séries chronologiques sur le Co2
+
+```{r}
+ts_data <- ts(hawai$CO2, start = c(1958, 3), end = c(2001, 12), frequency = 12)
+plot(ts_data, ylab= "CO2")
+
+```
+
+![Série chronologique sur le CO2](Rplot03.png)
+
+Séparer la série en parties d'entraînement (environ 70 % des données) et en parties de test
+
+```{r}
+train_size <- round(0.7 * length(ts_data))
+train_data <- window(ts_data, end = c(1985, 12))
+test_data <- window(ts_data, start = c(1986, 1))
+```
+
+créer un modèle de prévision sur les données d'apprentissage
+
+```{r}
+model <- auto.arima(train_data)
+```
+
+Prévisions
+
+```{r}
+forecast <- forecast(model, h = length(test_data))
+```
+
+Traçage
+
+```{r}
+autoplot(forecast) +
+  autolayer(test_data, series = "Test Data") +
+  xlab("Year") +
+  ylab("CO2") +
+  ggtitle("Forecast model")
+```
+
+![Forecast model](Rplot04.png)
+
+Effectuer une analyse résiduelle
+
+```{r}
+checkresiduals(model)
+```
+
+![Residual analysis](5th second plot.png)
